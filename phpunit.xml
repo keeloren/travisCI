@@ -34,6 +34,5 @@
         <env name="DB_DATABASE" value="dbtest"/>
         <env name="DB_USERNAME" value="dbuser"/>
         <env name="DB_PASSWORD" value="user123"/>
-        <env name="DB_ABC" value="nguyen"/>
     </php>
 </phpunit>
