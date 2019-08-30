@@ -1,0 +1,37 @@
+# This is a sample build configuration for PHP.
+# Check our guides at https://confluence.atlassian.com/x/e8YWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: toancong/phpup:2.2.2
+
+pipelines:
+  default:
+    - step:
+        caches:
+          - composer
+        script:
+          - cp .env.example .env
+          - sed -i 's|name="DB_HOST" value="dbtest"|name="DB_HOST" value="127.0.0.1"|g' phpunit.xml
+          - sed -i 's|name="DB_DATABASE" value="dbtest"|name="DB_DATABASE" value="pipelines"|g' phpunit.xml
+          - sed -i 's|name="DB_USERNAME" value="dbuser"|name="DB_USERNAME" value="test_user"|g' phpunit.xml
+          - sed -i 's|name="DB_PASSWORD" value="user123"|name="DB_PASSWORD" value="test_user_password"|g' phpunit.xml
+          - cat phpunit.xml
+          - composer install
+          - php artisan key:generate
+          - composer dump-autoload --no-scripts
+          - vendor/bin/phpunit --no-coverage
+        services:
+          - mysql
+options:
+  docker: true
+  nguyen: true
+definitions: 
+  services: 
+    mysql: 
+      image: mysql
+      environment: 
+        MYSQL_DATABASE: 'pipelines'
+        MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+        MYSQL_USER: 'test_user'
+        MYSQL_PASSWORD: 'test_user_password'
