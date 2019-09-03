@@ -1,31 +1,36 @@
-os:
-  - linux
-services: docker
+dist: bionic
+cache:
+  directories:
+    - $COMPOSER_CACHE_DIR
+    - $HOME/.composer/cache
+    - vendor
+# env:
+#   DOCKER_COMPOSE_VERSION: 1.4.2
+sudo: required
+services:
+  - mysql
 language: php
-
 php:
-  - '7.1'
-  
+  - '7.3'
 before_script:
+  - mysql -e 'CREATE DATABASE dbtest;'
   - cp .env.example .env
   - composer install
   - composer dump-autoload --no-scripts
-  
-script:
-  - sudo sed -i 's|name="DB_HOST" value="dbtest"|name="DB_HOST" value="127.0.0.1"|g' phpunit.xml
-  - sudo sed -i 's|name="DB_DATABASE" value="dbtest"|name="DB_DATABASE" value="pipelines"|g' phpunit.xml
-  - sudo sed -i 's|name="DB_USERNAME" value="dbuser"|name="DB_USERNAME" value="test_user"|g' phpunit.xml
-  - sudo sed -i 's|name="DB_PASSWORD" value="user123"|name="DB_PASSWORD" value="test_user_password"|g' phpunit.xml
+  - php artisan key:generate
+  - php artisan migrate
+  - sed -i 's|name="DB_HOST" value="dbtest"|name="DB_HOST" value="127.0.0.1"|g' phpunit.xml
+  - sed -i 's|name="DB_DATABASE" value="dbtest"|name="DB_DATABASE" value="dbtest"|g' phpunit.xml
+  - sed -i 's|name="DB_USERNAME" value="dbuser"|name="DB_USERNAME" value="root"|g' phpunit.xml
+  - sed -i 's|name="DB_PASSWORD" value="user123"|name="DB_PASSWORD" value=""|g' phpunit.xml
   - cat phpunit.xml
-  - docker -v
-  # - docker-compose run --rm api composer -n install
-  # - docker-compose run --rm api composer -n up
-  # - chmod -R 777 public
-  # - chmod -R 777 storage
-  # - chmod -R 777 bootstrap/cache
-
-  # - sudo docker-compose run --rm api php artisan key:generate
-  # - docker-compose stop
-  # - docker-compose up -d api phpmyadmin
-  # - docker-compose exec api bash
-  - vendor/bin/phpunit --no-coverage
+  # - php artisan db:seed
+script:
+  - vendor/bin/phpunit
+notifications:
+  slack: 
+    rooms: 
+      - testnoti-workspace:kN37GQFQJ7MqqpH0YTCw8W9d#develop
+  # email:  
+  #   recipients:  
+  #     - keezimin@gmail.com
