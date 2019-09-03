@@ -1,23 +1,32 @@
+env:
+  DOCKER_COMPOSE_VERSION: 1.4.2
 os:
   - linux
+sudo: required
 services: docker
 language: php
-
 php:
   - '7.1'
-  
+before_install:
+  - mkdir app
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 before_script:
   - cp .env.example .env
   - composer install
   - composer dump-autoload --no-scripts
   
 script:
-  - sudo sed -i 's|name="DB_HOST" value="dbtest"|name="DB_HOST" value="127.0.0.1"|g' phpunit.xml
-  - sudo sed -i 's|name="DB_DATABASE" value="dbtest"|name="DB_DATABASE" value="pipelines"|g' phpunit.xml
-  - sudo sed -i 's|name="DB_USERNAME" value="dbuser"|name="DB_USERNAME" value="test_user"|g' phpunit.xml
-  - sudo sed -i 's|name="DB_PASSWORD" value="user123"|name="DB_PASSWORD" value="test_user_password"|g' phpunit.xml
-  - cat phpunit.xml
-  - docker -v
+  - docker-compose up -d
+  - docker-compose ps
+  # - sudo sed -i 's|name="DB_HOST" value="dbtest"|name="DB_HOST" value="127.0.0.1"|g' phpunit.xml
+  # - sudo sed -i 's|name="DB_DATABASE" value="dbtest"|name="DB_DATABASE" value="pipelines"|g' phpunit.xml
+  # - sudo sed -i 's|name="DB_USERNAME" value="dbuser"|name="DB_USERNAME" value="test_user"|g' phpunit.xml
+  # - sudo sed -i 's|name="DB_PASSWORD" value="user123"|name="DB_PASSWORD" value="test_user_password"|g' phpunit.xml
+  # - cat phpunit.xml
+  # - docker -v
   # - docker-compose run --rm api composer -n install
   # - docker-compose run --rm api composer -n up
   # - chmod -R 777 public
@@ -28,4 +37,4 @@ script:
   # - docker-compose stop
   # - docker-compose up -d api phpmyadmin
   # - docker-compose exec api bash
-  - vendor/bin/phpunit --no-coverage
+  # - vendor/bin/phpunit --no-coverage
